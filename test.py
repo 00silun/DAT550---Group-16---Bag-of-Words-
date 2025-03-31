@@ -7,7 +7,7 @@ from trainModel import train_model
 from cleanText import clean_text
 from ffnn import FFNN
 from rnn import RNN
-from smartDataPreparatio import prepare_data  # <- import smart data loader
+from prepareData import prepare_data
 
 # ------------------------------
 # Config
