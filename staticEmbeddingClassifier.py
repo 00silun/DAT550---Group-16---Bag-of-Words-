@@ -13,7 +13,7 @@ from ffnn import FFNN
 from evaluation import evaluate_model
 from trainModel import train_model
 import nltk
-nltk.download('stopwords')
+#nltk.download('stopwords') # Uncomment this line if stopwords are not downloaded
 
 # Load Embeddings
 
