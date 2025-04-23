@@ -196,7 +196,7 @@ if __name__ == "__main__":
 
     # Now continue with your existing pipeline, setting EMBEDDING_TYPE to 'custom_word2vec' or 'custom_fasttext'
 
-
+    # Load dataset and embeddings
 
     abstracts, labels = load_dataset(DATASET_PATH)
     label_to_idx = {label: i for i, label in enumerate(sorted(set(labels)))}
