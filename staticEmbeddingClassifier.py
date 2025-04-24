@@ -22,6 +22,9 @@ from gensim.models.fasttext import load_facebook_vectors
 
 from gensim.models import FastText
 
+
+
+
 def load_custom_fasttext_gensim(path):
     print("Loading custom Gensim FastText model...")
     model = FastText.load(path)  # Load the actual model
@@ -156,7 +159,7 @@ if __name__ == "__main__":
 
     EMBEDDING_DIM = 300
     DATASET_PATH = "arxiv100.csv"
-    EMBEDDING_TYPE = "custom_fasttext"  # Choose between "fasttext", "word2vec", "glove", "custom_word2vec", "custom_fasttext"
+    EMBEDDING_TYPE = "word2vec"  # Choose between "fasttext", "word2vec", "glove", "custom_word2vec", "custom_fasttext"
 
     embedding_paths = {
         "fasttext": "crawl-300d-2M-subword.bin",
@@ -222,6 +225,98 @@ if __name__ == "__main__":
 
  
 
+    # Add this to the top for the toggle
+FINE_TUNE = True  # Set to True to enable fine-tuning of embeddings
+
+# Replace pooling logic with embedding layer logic if fine-tuning
+if FINE_TUNE:
+    from torch.utils.data import Dataset, DataLoader
+
+    class TextDataset(Dataset):
+        def __init__(self, texts, labels, word2idx, max_len=100):
+            self.sequences = []
+            self.labels = labels
+            self.word2idx = word2idx
+            self.max_len = max_len
+            print("Building token sequences...")
+
+            for text in texts:
+                indices = [word2idx.get(word, word2idx['<UNK>']) for word in text.split()[:max_len]]
+                # Pad
+                while len(indices) < max_len:
+                    indices.append(word2idx['<PAD>'])
+                self.sequences.append(indices)
+
+        def __len__(self):
+            return len(self.labels)
+
+        def __getitem__(self, idx):
+            return torch.tensor(self.sequences[idx]), torch.tensor(self.labels[idx])
+
+    # Build vocabulary and embedding matrix
+    vocab = list(embeddings.keys())
+    word2idx = {word: i+2 for i, word in enumerate(vocab)}
+    word2idx['<PAD>'] = 0
+    word2idx['<UNK>'] = 1
+
+    embedding_matrix = np.zeros((len(word2idx), EMBEDDING_DIM))
+    for word, idx in word2idx.items():
+        if word in embeddings:
+            embedding_matrix[idx] = embeddings[word]
+        elif word == '<UNK>':
+            embedding_matrix[idx] = np.mean(list(embeddings.values()), axis=0)
+
+    embedding_tensor = torch.FloatTensor(embedding_matrix)
+
+    class FineTunableFFNN(nn.Module):
+        def __init__(self, embedding_tensor, hidden_dims, output_dim):
+            super().__init__()
+            self.embedding = nn.Embedding.from_pretrained(embedding_tensor, freeze=not FINE_TUNE)
+            input_dim = embedding_tensor.shape[1]
+            self.fc_layers = nn.Sequential(
+                nn.Linear(input_dim, hidden_dims[0]),
+                nn.ReLU(),
+                nn.Linear(hidden_dims[0], hidden_dims[1]),
+                nn.ReLU(),
+                nn.Linear(hidden_dims[1], hidden_dims[2]),
+                nn.ReLU(),
+                nn.Linear(hidden_dims[2], output_dim)
+            )
+
+        def forward(self, x):
+            x = self.embedding(x)
+            x = torch.mean(x, dim=1)  # Mean pooling over token dimension
+            return self.fc_layers(x)
+
+    X_train, X_dev, y_train, y_dev = train_test_split(abstracts, y, test_size=0.2, stratify=y, random_state=42)
+    train_dataset = TextDataset(X_train, y_train, word2idx)
+    val_dataset = TextDataset(X_dev, y_dev, word2idx)
+
+    train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=64)
+
+    model = FineTunableFFNN(embedding_tensor, hidden_dims=[512, 256, 128], output_dim=len(label_to_idx))
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=1e-3)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    train_model(
+        model, train_loader, val_loader, criterion, optimizer, num_epochs=100,
+        device=device,
+        name=f"{EMBEDDING_TYPE}_fine_tune", model_type="FineTunedFFNN"
+    )
+
+    evaluate_model(
+        model,
+        X_test=None, y_test=None,
+        dataloader=val_loader,
+        device=device,
+        csv_filename=f"{EMBEDDING_TYPE}_fine_tune_eval.csv"
+    )
+
+else:
+    # Your original pooling-based path runs here
     for name, pooling_fn in pooling_methods.items():
         print("=" * 60)
         print(f"Testing pooling method: {name}")
@@ -239,10 +334,14 @@ if __name__ == "__main__":
         train_loader = [(train_tensor, train_labels)]
         val_loader = [(dev_tensor, dev_labels)]
 
-        model = FFNN(input_dim=dim, hidden_dims=[512, 256,128], output_dim=len(label_to_idx))
+        model = FFNN(input_dim=dim, hidden_dims=[512, 256, 128], output_dim=len(label_to_idx))
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
-        train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs=100, device=torch.device("cuda" if torch.cuda.is_available() else "cpu"), name=f"{EMBEDDING_TYPE}_{name}", model_type="FFNN")
+        train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs=100,
+                    device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+                    name=f"{EMBEDDING_TYPE}_{name}", model_type="FFNN")
 
-        evaluate_model(model, X_test=dev_tensor, y_test=dev_labels, device=torch.device("cuda" if torch.cuda.is_available() else "cpu"), csv_filename=f"{EMBEDDING_TYPE}_{name}_eval.csv")
+        evaluate_model(model, X_test=dev_tensor, y_test=dev_labels,
+                       device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+                       csv_filename=f"{EMBEDDING_TYPE}_{name}_eval.csv")
