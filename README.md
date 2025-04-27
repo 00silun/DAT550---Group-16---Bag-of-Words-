@@ -1,6 +1,5 @@
 # Bag of Words Document Classification - DAT550 - Group 16
 
----
 
 ## 1. Project Overview
 This project classifies scientific abstracts into 10 research fields (Computer Science, Physics, Mathematics, etc.) using neural networks.  
@@ -8,12 +7,10 @@ We work with the **Arxiv-10** dataset.
 
 **Goal:** Predict the research field based on the abstract
 
----
 
 ## 2. Requirements
 
 - Python 3.10+
----
 
 ## 3. Project Structure
 
@@ -28,8 +25,6 @@ We work with the **Arxiv-10** dataset.
 | `rnn.py` | Defines the RNN model architecture (GRU, LSTM, or simple RNN). |
 | `load_embeddings.py` | Loads pre-trained embeddings like GloVe. |
 | `cleanText.py` | Cleans text abstracts (lowercasing, punctuation removal). |
-
----
 
 ## 4. Steps to Reproduce Results
 
@@ -85,7 +80,6 @@ We work with the **Arxiv-10** dataset.
     python RNN_FNN_main.py
     ```
 
----
 
 ## 5. Outputs
 
@@ -94,7 +88,6 @@ We work with the **Arxiv-10** dataset.
   - Evaluation metrics (accuracy, precision, recall, F1-score, confusion matrix) are saved as CSV files in the `outputs/` directory.
   - Model predictions and confusion matrix plots can be generated for analysis.
 
----
 
 ## 6. Notes
 
@@ -102,4 +95,3 @@ We work with the **Arxiv-10** dataset.
 - Hyperparameters like `dropout`, `learning_rate`, and `embedding_type` are easily adjustable in the `config` block inside the main file.
 - We recomend running this on a powerfull computer or VM
 
----
