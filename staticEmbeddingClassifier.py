@@ -9,16 +9,16 @@ import torch.nn as nn
 import torch.optim as optim
 import re
 from nltk.corpus import stopwords
-from ffnn import FFNN
-from evaluation import evaluate_model
-from trainModel import train_model
+from models.ffnn import FFNN
+from models.evaluation import evaluate_model
+from models.trainModel import train_model
 import nltk
 import os
 from gensim.models import Word2Vec, FastText
 from gensim.utils import simple_preprocess
 
 from gensim.models.fasttext import load_facebook_vectors
-#nltk.download('stopwords') # Uncomment this line if stopwords are not downloaded
+# nltk.download('stopwords') # Uncomment this line if stopwords are not downloaded
 
 from gensim.models import FastText
 
@@ -154,19 +154,18 @@ def create_dataset(texts, labels, embeddings, dim, pooling_fn, **kwargs):
 # Main setup
 
 if __name__ == "__main__":
-
-
-
-    EMBEDDING_DIM = 300
-    DATASET_PATH = "arxiv100.csv"
+    EMBEDDING_DIM = 300 
+    DATASET_PATH = "data/arxiv100.csv"
     EMBEDDING_TYPE = "word2vec"  # Choose between "fasttext", "word2vec", "glove", "custom_word2vec", "custom_fasttext"
 
+    EMBEDDING_FOLDER = "embeddings/"
+
     embedding_paths = {
-        "fasttext": "crawl-300d-2M-subword.bin",
-        "word2vec": "GoogleNews-vectors-negative300.bin.gz",
-        "glove": "glove.6B.300d.txt",
-        "custom_word2vec": "embeddings/custom_word2vec.vec",
-        "custom_fasttext": "embeddings/custom_fasttext.bin"
+        "fasttext": EMBEDDING_FOLDER + "crawl-300d-2M-subword.bin",
+        "word2vec": EMBEDDING_FOLDER + "GoogleNews-vectors-negative300.bin",
+        "glove": EMBEDDING_FOLDER + "glove.6B.300d.txt",
+        "custom_word2vec": EMBEDDING_FOLDER + "custom_word2vec.vec",
+        "custom_fasttext": EMBEDDING_FOLDER + "custom_fasttext.bin"
     }
 
     pooling_methods = {
@@ -202,6 +201,9 @@ if __name__ == "__main__":
     # Load dataset and embeddings
 
     abstracts, labels = load_dataset(DATASET_PATH)
+    # abstracts = abstracts[:1000] # now just for testing
+    # labels = labels[:1000] #now just for testing#
+
     label_to_idx = {label: i for i, label in enumerate(sorted(set(labels)))}
     y = [label_to_idx[label] for label in labels]
 
@@ -211,8 +213,6 @@ if __name__ == "__main__":
         embeddings = load_word2vec_embeddings(embedding_paths[EMBEDDING_TYPE], binary=True)
     elif EMBEDDING_TYPE == "glove":
         embeddings = load_glove_embeddings(embedding_paths[EMBEDDING_TYPE])
-    elif EMBEDDING_TYPE == "fasttext":
-        embeddings = load_fasttext_embeddings(embedding_paths[EMBEDDING_TYPE])
     elif EMBEDDING_TYPE == "custom_fasttext":
         embeddings = load_custom_fasttext_gensim(embedding_paths[EMBEDDING_TYPE])
     elif EMBEDDING_TYPE in ["word2vec", "custom_word2vec"]:
@@ -295,14 +295,14 @@ if FINE_TUNE:
     train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=64)
 
-    model = FineTunableFFNN(embedding_tensor, hidden_dims=[512, 256, 128], output_dim=len(label_to_idx))
+    model = FineTunableFFNN(embedding_tensor, hidden_dims=[256, 128, 64], output_dim=len(label_to_idx)) #[512, 256, 128] use this when not testing
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
 
     train_model(
-        model, train_loader, val_loader, criterion, optimizer, num_epochs=100,
+        model, train_loader, val_loader, criterion, optimizer, num_epochs=2, #num_epochs=100 use this when not testing
         device=device,
         name=f"{EMBEDDING_TYPE}_fine_tune", model_type="FineTunedFFNN"
     )
@@ -310,7 +310,7 @@ if FINE_TUNE:
     evaluate_model(
         model,
         X_test=None, y_test=None,
-        dataloader=val_loader,
+        test_loader=val_loader,
         device=device,
         csv_filename=f"{EMBEDDING_TYPE}_fine_tune_eval.csv"
     )
@@ -334,14 +334,14 @@ else:
         train_loader = [(train_tensor, train_labels)]
         val_loader = [(dev_tensor, dev_labels)]
 
-        model = FFNN(input_dim=dim, hidden_dims=[512, 256, 128], output_dim=len(label_to_idx))
+        model = FFNN(input_dim=dim, hidden_dims=[256, 128, 64], output_dim=len(label_to_idx))
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
         train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs=100,
-                    device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+                    device=torch.device("cuda:2" if torch.cuda.is_available() else "cpu"),
                     name=f"{EMBEDDING_TYPE}_{name}", model_type="FFNN")
 
         evaluate_model(model, X_test=dev_tensor, y_test=dev_labels,
-                       device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
+                       device=torch.device("cuda:2" if torch.cuda.is_available() else "cpu"),
                        csv_filename=f"{EMBEDDING_TYPE}_{name}_eval.csv")
