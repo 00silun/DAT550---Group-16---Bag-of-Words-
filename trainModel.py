@@ -3,11 +3,13 @@ import csv
 import os
 import time
 
-def train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs, device, name="Model", model_type="FFNN"):
+
+def train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs, device, name="Model", model_type="FFNN", patience=50):
     model.to(device)
     best_val_loss = float('inf')
     best_model_state = None
     train_losses, val_losses = [], []
+    epochs_no_improve = 0
 
     # CSV setup
     csv_filename = f"{name.lower()}_training_log.csv"
@@ -59,9 +61,16 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, num_epoch
             # Write to CSV
             writer.writerow([model_type, activation, epoch + 1, avg_train_loss, avg_val_loss, round(epoch_time, 2)])
 
+            # Early Stopping Check
             if avg_val_loss < best_val_loss:
                 best_val_loss = avg_val_loss
                 best_model_state = model.state_dict()
+                epochs_no_improve = 0  # Reset counter when improvement
+            else:
+                epochs_no_improve += 1
+                if epochs_no_improve >= patience:
+                    print(f"Early stopping triggered after {epoch+1} epochs!")
+                    break
 
     torch.save(best_model_state, f"best_{name.lower()}_model.pt")
     return train_losses, val_losses, best_model_state
