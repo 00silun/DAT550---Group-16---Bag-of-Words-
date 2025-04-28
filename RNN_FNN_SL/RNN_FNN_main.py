@@ -7,6 +7,8 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import numpy as np
 import nltk
 nltk.download('punkt')
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "7"
 
 from prepareData import prepare_data
 from ffnn import FFNN
@@ -22,35 +24,38 @@ from torch.utils.data import TensorDataset, DataLoader
 # ------------------------------
 config = {
     # Model selection
-    "model_type": "RNN",        # Options: 'FFNN' (bag-of-words) or 'RNN' (sequence model)
+    "model_type": "RNN",
 
     # RNN-specific options
-    "rnn_type": "gru",          # Options (only if model_type='RNN'): 'rnn', 'lstm', 'gru'
-    "pooling": "max",        # Options (only if model_type='RNN'): 'last', 'average', 'max'
+    "rnn_type": "RNN",
+    "pooling": "average",
 
     # Embedding options
-    "embedding_type": "pretrained",  # Options (only if model_type='RNN'): 'random' (learn from scratch), 'pretrained' (e.g., GloVe)
-    "freeze_embeddings": False,      # True = Freeze pre-trained embeddings, False = Fine-tune during training
+    "embedding_type": "pretrained",  # 'random' or 'pretrained'
+    "embedding_source": "glove",  # 'glove', 'word2vec', or 'fasttext'
+    "freeze_embeddings": True,
 
     # FFNN-specific options
-    "use_tfidf": True,           # Only used if model_type='FFNN'. Options: True (use TF-IDF) or False (use CountVectorizer)
+    "use_tfidf": True,
 
     # Data and input size
-    "vocab_size": 20000,          # Size of vocabulary (for RNN) or max number of features (for FFNN)
-    "embedding_dim": 100,         # Dimensionality of word embeddings (e.g., 50, 100, 200, 300 for GloVe)
-    "max_seq_len": 300,           # Maximum number of tokens (words) per abstract
+    "vocab_size": 20000,
+    "max_seq_len": 300,
+    "hidden_dim": 256,
 
     # Training hyperparameters
-    "batch_size": 64,             # Number of samples per batch
-    "num_epochs": 14,             # Number of full passes through the training data
-    "activation": "relu",         # Activation function to use (mainly for FFNN): 'relu', 'tanh', etc.
-    "dropout_prob": 0.4,          # Dropout probability (helps prevent overfitting)
-    "learning_rate": 0.00035,     # Learning rate for optimizer (lower = slower but more stable)
+    "batch_size": 16,
+    "num_epochs": 10,
+    "activation": "relu",
+    "dropout_prob": 0.4,
+    "learning_rate": 0.00035,
+
+    # RNN layers
+    "num_rnn_layers": 3,
 
     # Dataset path
-    "dataset_path": "/zfs1/home/u256437/DAT550Project/arxiv100.csv"  # Path to CSV file
+    "dataset_path": "/zfs1/home/u256437/DAT550Project/arxiv100.csv"
 }
-
 
 # ------------------------------
 # DATA PREPARATION
@@ -69,43 +74,43 @@ train_loader, val_loader, X_test_tensor, y_test_tensor, input_dim, output_dim, v
 )
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# Create test_loader here (NEW)
 test_loader = DataLoader(TensorDataset(X_test_tensor, y_test_tensor), batch_size=config["batch_size"], shuffle=False)
 
 # ------------------------------
 # MODEL SETUP
 # ------------------------------
 print(f"Initializing {config['model_type']} model...")
+
 if config["model_type"] == "FFNN":
     model = FFNN(
         input_dim=input_dim,
-        hidden_dims=[1024, 512, 256],
+        hidden_dims=[512, 256, 128],
         output_dim=output_dim,
         activation=config["activation"],
         dropout_prob=config["dropout_prob"]
     )
-else:  # RNN
+else:
     if config["embedding_type"] == "pretrained":
-        pretrained_embeddings = load_pretrained_embeddings(
+        pretrained_embeddings, embedding_dim = load_pretrained_embeddings(
             vocab,
-            embedding_dim=config["embedding_dim"],
-            embedding_path="/zfs1/home/u256437/DAT550Project/glove.6B.100d.txt"
+            embedding_type=config["embedding_source"]
         )
     else:
         pretrained_embeddings = None
+        embedding_dim = 100  # Default if not using pretrained
 
     model = RNN(
         vocab_size=input_dim,
-        embedding_dim=config["embedding_dim"],
-        hidden_dim=128,
+        embedding_dim=embedding_dim,
+        hidden_dim=config["hidden_dim"],
         output_dim=output_dim,
         rnn_type=config["rnn_type"],
         pooling=config["pooling"],
         bidirectional=True,
         dropout_prob=config["dropout_prob"],
         pretrained_embeddings=pretrained_embeddings,
-        freeze_embeddings=config["freeze_embeddings"]
+        freeze_embeddings=config["freeze_embeddings"],
+        num_layers=config["num_rnn_layers"]
     )
 
 model = model.to(device)
@@ -137,7 +142,7 @@ model.load_state_dict(best_model_state)
 print("Evaluating model...")
 results = evaluate_model(
     model,
-    test_loader,  # <-- pass DataLoader, not raw tensors
+    test_loader,
     device=device,
     csv_filename=f'{config["model_type"].lower()}_evaluation_log.csv'
 )
