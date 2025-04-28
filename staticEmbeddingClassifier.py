@@ -73,9 +73,9 @@ class TextDataset(Dataset):
 if __name__ == "__main__":
     EMBEDDING_DIM = 300
     DATASET_PATH = "arxiv100.csv"
-    EMBEDDING_TYPE = "custom_fasttext"  # Options: fasttext, word2vec, glove, custom_word2vec, custom_fasttext
-    FINE_TUNE = True  # Set to False if you want to freeze embeddings
-    num_epochs = 10
+    EMBEDDING_TYPE = "word2vec"  # Options: fasttext, word2vec, glove, custom_word2vec, custom_fasttext
+    FINE_TUNE = False  # Set to False if you want to freeze embeddings
+    num_epochs = 1000
 
 
     embedding_paths = {
@@ -87,10 +87,10 @@ if __name__ == "__main__":
     }
 
     pooling_methods = {
-        "mean": Pooling.mean,
+        #"mean": Pooling.mean,
         "max": Pooling.max,
-        "sum": Pooling.sum,
-        "mean_max": Pooling.mean_max,
+        #"sum": Pooling.sum,
+        #"mean_max": Pooling.mean_max,
     }
 
     # Load dataset
@@ -169,6 +169,7 @@ if __name__ == "__main__":
 
             criterion = nn.CrossEntropyLoss()
             optimizer = optim.Adam(model.parameters(), lr=1e-3)
+            idx_to_label = {idx: label for label, idx in label_to_idx.items()}
 
-            train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs=1000, device=device, name=f"{EMBEDDING_TYPE}_{name}", model_type="FFNN")
-            evaluate_model(model, X_test=dev_tensor, y_test=dev_labels, device=device, csv_filename=f"{EMBEDDING_TYPE}_{name}_eval.csv")
+            train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs=num_epochs, device=device, name=f"{EMBEDDING_TYPE}_{name}", model_type="FFNN")
+            evaluate_model(model, X_test=dev_tensor, y_test=dev_labels, device=device, csv_filename=f"{EMBEDDING_TYPE}_{name}_eval.csv", idx_to_label=idx_to_label)
