@@ -13,9 +13,11 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "4"
 from prepareData import prepare_data
 from ffnn import FFNN
 from rnn import RNN
-from evaluation import evaluate_model
 from trainModel import train_model
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from cleanText import clean_text
+from evaluation import evaluate_model
 from load_embeddings import load_pretrained_embeddings
 from torch.utils.data import TensorDataset, DataLoader
 
@@ -64,7 +66,7 @@ print("Loading and preprocessing data...")
 df = pd.read_csv(config["dataset_path"])
 df['processed_abstract'] = df['abstract'].apply(clean_text)
 
-train_loader, val_loader, X_test_tensor, y_test_tensor, input_dim, output_dim, vocab, label_encoder = prepare_data(
+train_loader, val_loader, X_test_tensor, y_test_tensor, input_dim, output_dim, vocab = prepare_data(
     df,
     model_type=config["model_type"],
     vocab_size=config["vocab_size"],
@@ -142,12 +144,12 @@ model.load_state_dict(best_model_state)
 # ------------------------------
 
 # Create idx_to_label mapping
-idx_to_label = {idx: label for idx, label in enumerate(label_encoder.classes_)}
+# idx_to_label = {idx: label for idx, label in enumerate(label_encoder.classes_)}
 
 results = evaluate_model(
     model,
     test_loader=test_loader,
     device=device,
     csv_filename=f'{config["model_type"].lower()}_evaluation_log.csv',
-    idx_to_label=idx_to_label
+    # idx_to_label=idx_to_label
 )
