@@ -8,7 +8,7 @@ import numpy as np
 import nltk
 nltk.download('punkt')
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "7"
+os.environ["CUDA_VISIBLE_DEVICES"] = "4"
 
 from prepareData import prepare_data
 from ffnn import FFNN
@@ -24,16 +24,16 @@ from torch.utils.data import TensorDataset, DataLoader
 # ------------------------------
 config = {
     # Model selection
-    "model_type": "RNN",
+    "model_type": "FFNN",
 
     # RNN-specific options
-    "rnn_type": "RNN",
-    "pooling": "average",
+    "rnn_type": "GRU",
+    "pooling": "max",
 
     # Embedding options
-    "embedding_type": "pretrained",  # 'random' or 'pretrained'
+    "embedding_type": "random",  # 'random' or 'pretrained'
     "embedding_source": "glove",  # 'glove', 'word2vec', or 'fasttext'
-    "freeze_embeddings": True,
+    "freeze_embeddings": False,
 
     # FFNN-specific options
     "use_tfidf": True,
@@ -73,7 +73,7 @@ train_loader, val_loader, X_test_tensor, y_test_tensor, input_dim, output_dim, v
     use_tfidf=config["use_tfidf"]
 )
 
-device = torch.device("cuda:6" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 test_loader = DataLoader(TensorDataset(X_test_tensor, y_test_tensor), batch_size=config["batch_size"], shuffle=False)
 
@@ -85,7 +85,7 @@ print(f"Initializing {config['model_type']} model...")
 if config["model_type"] == "FFNN":
     model = FFNN(
         input_dim=input_dim,
-        hidden_dims=[512, 256, 128],
+        hidden_dims=[256, 128, 64],
         output_dim=output_dim,
         activation=config["activation"],
         dropout_prob=config["dropout_prob"]

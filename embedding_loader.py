@@ -19,7 +19,6 @@ class EmbeddingLoader:
         model = FastText.load(path)  # Load the actual model
         return {word: model.wv[word] for word in model.wv.index_to_key}
 
-
     @staticmethod
     def load_word2vec(path, binary=True):
         print("Loading Word2Vec model...")

@@ -13,6 +13,8 @@ from ffnn import FFNN
 from evaluation import evaluate_model
 from trainModel import train_model
 import nltk
+from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
 
 from cleanText import clean_text
 import os
@@ -25,6 +27,8 @@ from embedding_loader import EmbeddingLoader
 from gensim.models import FastText
 from generate_custom_embedding import generateCustomEmbeddings
 from build_embedding_layer import buildEmbeddingLayer
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "4"    # Set to the GPU you want to use
 
 stop_words = set(stopwords.words('english'))
 
@@ -43,9 +47,6 @@ def create_dataset(texts, labels, embeddings, dim, pooling_fn, **kwargs):
     X = np.array([vectorize_text(t, embeddings, dim, pooling_fn, **kwargs) for t in texts])
     y = np.array(labels)
     return X, y
-
-
-from torch.utils.data import Dataset
 
 class TextDataset(Dataset):
     def __init__(self, texts, labels, word2idx, max_len=100):
@@ -69,19 +70,17 @@ class TextDataset(Dataset):
 
 
 # Main setup
-
 if __name__ == "__main__":
     EMBEDDING_DIM = 300
-    DATASET_PATH = "arxiv100.csv"
-    EMBEDDING_TYPE = "word2vec"  # Options: fasttext, word2vec, glove, custom_word2vec, custom_fasttext
-    FINE_TUNE = False  # Set to False if you want to freeze embeddings
-    num_epochs = 1000
-
+    DATASET_PATH = "data/arxiv100.csv"
+    EMBEDDING_TYPE = "fasttext"  # Options: fasttext, word2vec, glove, custom_word2vec, custom_fasttext
+    FINE_TUNE = True  # Set to False if you want to freeze embeddings
+    num_epochs = 20
 
     embedding_paths = {
-        "fasttext": "crawl-300d-2M-subword.bin",
-        "word2vec": "GoogleNews-vectors-negative300.bin.gz",
-        "glove": "glove.6B.300d.txt",
+        "fasttext": "embeddings/crawl-300d-2M-subword.bin",
+        "word2vec": "embeddings/GoogleNews-vectors-negative300.bin.gz",
+        "glove": "embeddings/glove.6B.300d.txt",
         "custom_word2vec": "embeddings/custom_word2vec.vec",
         "custom_fasttext": "embeddings/custom_fasttext.bin"
     }
@@ -110,7 +109,7 @@ if __name__ == "__main__":
     else:
         raise ValueError("Invalid EMBEDDING_TYPE selected.")
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     if FINE_TUNE:
         print("Fine-tuning embeddings during training.")
@@ -119,8 +118,6 @@ if __name__ == "__main__":
             embedding_dim=EMBEDDING_DIM,
             freeze=False
         )
-
-        from torch.utils.data import DataLoader
 
         X_train, X_dev, y_train, y_dev = train_test_split(abstracts, y, test_size=0.2, stratify=y, random_state=42)
         train_dataset = TextDataset(X_train, y_train, word2idx)

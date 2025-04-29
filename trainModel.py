@@ -3,7 +3,6 @@ import csv
 import os
 import time
 
-
 def train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs, device, name="Model", model_type="FFNN", patience=50):
     model.to(device)
     best_val_loss = float('inf')

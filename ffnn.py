@@ -30,7 +30,7 @@ class FFNN(nn.Module):
     def forward(self, x):
         if self.use_embedding:
             x = self.embedding(x)  # (batch, seq_len, embedding_dim)
-            x = torch.mean(x, dim=1)  # Pooling over sequence dimension
+            x = torch.sum(x, dim=1)  # Pooling over sequence dimension
 
         activations = {
             'relu': F.relu,
