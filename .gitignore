@@ -1,0 +1,7 @@
+*.csv
+*.DS_Store
+*.pt
+/embeddings
+/data
+*__pycache__
+*.png
