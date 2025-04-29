@@ -16,13 +16,13 @@ def load_pretrained_embeddings(vocab, embedding_type="glove"):
     """
     # Set default paths and dimensions
     if embedding_type == "glove":
-        path = "/zfs1/home/u256437/DAT550Project/glove.6B.100d.txt"
+        path = "../embeddings/glove.6B.100d.txt"
         embedding_dim = 100
     elif embedding_type == "word2vec":
-        path = "/zfs1/home/u256437/DAT550Project/GoogleNews-vectors-negative300.bin"
+        path = "../embeddings/GoogleNews-vectors-negative300.bin"
         embedding_dim = 300
     elif embedding_type == "fasttext":
-        path = "/zfs1/home/u256437/DAT550Project/crawl-300d-2M-subword.bin"
+        path = "../embeddings/crawl-300d-2M-subword.bin"
         embedding_dim = 300
     else:
         raise ValueError(f"Unsupported embedding type: {embedding_type}")

@@ -64,4 +64,4 @@ def prepare_data(df, model_type='FFNN', vocab_size=10000, max_seq_len=200, batch
         X_test_tensor = torch.tensor(X_test, dtype=torch.long)
         y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 
-        return train_loader, val_loader, X_test_tensor, y_test_tensor, vocab_size, len(label_encoder.classes_), vocab
+        return train_loader, val_loader, X_test_tensor, y_test_tensor, vocab_size, len(label_encoder.classes_), vocab, label_encoder

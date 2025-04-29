@@ -54,7 +54,7 @@ config = {
     "num_rnn_layers": 3,
 
     # Dataset path
-    "dataset_path": "/zfs1/home/u256437/DAT550Project/arxiv100.csv"
+    "dataset_path": "../data/arxiv100.csv"
 }
 
 # ------------------------------
@@ -64,7 +64,7 @@ print("Loading and preprocessing data...")
 df = pd.read_csv(config["dataset_path"])
 df['processed_abstract'] = df['abstract'].apply(clean_text)
 
-train_loader, val_loader, X_test_tensor, y_test_tensor, input_dim, output_dim, vocab = prepare_data(
+train_loader, val_loader, X_test_tensor, y_test_tensor, input_dim, output_dim, vocab, label_encoder = prepare_data(
     df,
     model_type=config["model_type"],
     vocab_size=config["vocab_size"],
@@ -73,7 +73,8 @@ train_loader, val_loader, X_test_tensor, y_test_tensor, input_dim, output_dim, v
     use_tfidf=config["use_tfidf"]
 )
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:6" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
 test_loader = DataLoader(TensorDataset(X_test_tensor, y_test_tensor), batch_size=config["batch_size"], shuffle=False)
 
 # ------------------------------
@@ -139,12 +140,14 @@ model.load_state_dict(best_model_state)
 # ------------------------------
 # EVALUATION
 # ------------------------------
-print("Evaluating model...")
+
+# Create idx_to_label mapping
+idx_to_label = {idx: label for idx, label in enumerate(label_encoder.classes_)}
+
 results = evaluate_model(
     model,
-    test_loader,
+    test_loader=test_loader,
     device=device,
-    csv_filename=f'{config["model_type"].lower()}_evaluation_log.csv'
+    csv_filename=f'{config["model_type"].lower()}_evaluation_log.csv',
+    idx_to_label=idx_to_label
 )
-
-print("Final Evaluation Metrics:", results)
