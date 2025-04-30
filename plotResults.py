@@ -24,8 +24,6 @@ plt.xticks(rotation=45)
 plt.yticks(rotation=45)
 plt.tight_layout()
 
-# 🔥 Save the plot instead of (or before) showing
-plt.savefig("confusion_matrix_rnn.png", dpi=300)  # Save with high resolution
-# plt.show()  # (Optional: still show if you want)
+plt.savefig("confusion_matrix_rnn.png", dpi=300)
 
 print("Confusion matrix saved as confusion_matrix_rnn.png")
