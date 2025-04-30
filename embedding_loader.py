@@ -16,7 +16,7 @@ class EmbeddingLoader:
     
     def load_custom_fasttext(path):
         print("Loading custom Gensim FastText model...")
-        model = FastText.load(path)  # Load the actual model
+        model = FastText.load(path) 
         return {word: model.wv[word] for word in model.wv.index_to_key}
 
     @staticmethod

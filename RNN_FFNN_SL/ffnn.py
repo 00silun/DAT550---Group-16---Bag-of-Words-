@@ -36,9 +36,9 @@ class FFNN(nn.Module):
         }
         act = activations.get(self.activation_name, F.relu)
 
-        for i in range(0, len(self.hidden_layers), 2):  # Linear + Dropout
+        for i in range(0, len(self.hidden_layers), 2):  
             x = act(self.hidden_layers[i](x))
             x = self.hidden_layers[i + 1](x)
 
         x = self.output_layer(x)
-        return x  # raw logits for CrossEntropyLoss
+        return x

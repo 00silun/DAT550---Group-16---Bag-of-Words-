@@ -5,3 +5,6 @@ tqdm
 numpy
 pandas
 nltk
+seaborn
+sklearn
+matplotlib

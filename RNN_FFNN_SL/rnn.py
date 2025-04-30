@@ -15,7 +15,7 @@ class RNN(nn.Module):
         pooling='last',
         pretrained_embeddings=None,
         freeze_embeddings=False,
-        num_layers=3  # Number of RNN layers to stack
+        num_layers=3 
     ):
         super().__init__()
         self.pooling = pooling
@@ -68,9 +68,9 @@ class RNN(nn.Module):
 
         # Pooling
         if self.pooling == 'last':
-            if isinstance(hidden, tuple):  # LSTM returns (hidden, cell)
+            if isinstance(hidden, tuple):  
                 hidden = hidden[0]
-            if hidden.size(0) == 2:  # bidirectional
+            if hidden.size(0) == 2:  
                 hidden = torch.cat((hidden[-2], hidden[-1]), dim=1)
             else:
                 hidden = hidden[-1]
@@ -85,7 +85,7 @@ class RNN(nn.Module):
             out = self.fc(out)
 
         elif self.pooling == 'sum':
-            out = torch.sum(out, dim=1)  # <-- fixed here: use `out`, not `rnn_out`
+            out = torch.sum(out, dim=1)
             out = self.fc(out)
 
         else:

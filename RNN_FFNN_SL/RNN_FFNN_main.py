@@ -142,14 +142,9 @@ model.load_state_dict(best_model_state)
 # ------------------------------
 # EVALUATION
 # ------------------------------
-
-# Create idx_to_label mapping
-# idx_to_label = {idx: label for idx, label in enumerate(label_encoder.classes_)}
-
 results = evaluate_model(
     model,
     test_loader=test_loader,
     device=device,
     csv_filename=f'{config["model_type"].lower()}_evaluation_log.csv',
-    # idx_to_label=idx_to_label
 )

@@ -10,7 +10,7 @@ class FFNN(nn.Module):
         if embedding_layer is not None:
             self.use_embedding = True
             self.embedding = embedding_layer
-            input_dim = embedding_layer.embedding_dim  # override input_dim
+            input_dim = embedding_layer.embedding_dim
         else:
             self.use_embedding = False
 

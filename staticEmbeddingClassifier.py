@@ -22,7 +22,7 @@ from gensim.models import Word2Vec, FastText
 from gensim.utils import simple_preprocess
 from pooling import Pooling
 from gensim.models.fasttext import load_facebook_vectors
-#nltk.download('stopwords') # Uncomment this line if stopwords are not downloaded
+nltk.download('stopwords') # Uncomment this line if stopwords are not downloaded
 from embedding_loader import EmbeddingLoader
 from gensim.models import FastText
 from generate_custom_embedding import generateCustomEmbeddings
