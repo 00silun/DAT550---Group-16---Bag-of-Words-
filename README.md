@@ -44,21 +44,21 @@ This project classifies scientific abstracts into 10 research fields (Computer S
 
 - **Embeddings** (Required in `embeddings/` folder):
 
-     - **Word2Vec:** `GoogleNews-vectors-negative300.bin`
-       - Source: [GoogleNews Word2Vec 300d](https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit?resourcekey=0-wjGZdNAUop6WykTtMip30g)
-     - **FastText:** `crawl-300d-2M-subword.bin`
-       - Source: [FastText Crawl 300d](https://fasttext.cc/docs/en/english-vectors.html)
-     - **GloVe:** Download the GloVe 6B embeddings and ensure you have the 100, 200, and 300-dimensional files:
+  - **Word2Vec:** `GoogleNews-vectors-negative300.bin`
+    - Source: [GoogleNews Word2Vec 300d](https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit?resourcekey=0-wjGZdNAUop6WykTtMip30g)
+  - **FastText:** `crawl-300d-2M-subword.bin`
+    - Source: [FastText Crawl 300d](https://fasttext.cc/docs/en/english-vectors.html)
+  - **GloVe:** Download the GloVe 6B embeddings and ensure you have the 100, 200, and 300-dimensional files:
 
-       - `glove.6B.100d.txt`
-       - `glove.6B.200d.txt`
-       - `glove.6B.300d.txt`
+    - `glove.6B.100d.txt`
+    - `glove.6B.200d.txt`
+    - `glove.6B.300d.txt`
 
-       - Source: [glove.6B.zip](https://nlp.stanford.edu/projects/glove/)
+    - Source: [glove.6B.zip](https://nlp.stanford.edu/projects/glove/)
 
 - **Dataset** (Required in `data/` folder):
   - **arXiv100:** `arxiv100.csv`
-    - Source: [arXiv100 Sample Dataset](https://liveuis-my.sharepoint.com/personal/2926110_uis_no/_layouts/15/onedrive.aspx?id=%2Fpersonal%2F2926110%5Fuis%5Fno%2FDocuments%2FAttachments%2FArchive%2Ezip&parent=%2Fpersonal%2F2926110%5Fuis%5Fno%2FDocuments%2FAttachments&ga=1)
+    - Source: [arXiv100 Sample Dataset](https://paperswithcode.com/dataset/arxiv-10)
 
 1. **Run the models**:
 
