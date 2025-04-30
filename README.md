@@ -25,7 +25,7 @@ This project classifies scientific abstracts into 10 research fields (Computer S
      cd DAT550---Group-16---Bag-of-Words-
      ```
 
-2. **Set up a Python virtual environment**:
+2. **Optionally: Set up a Python virtual environment**:
 
    ```bash
    python3 -m venv .venv
@@ -44,7 +44,7 @@ This project classifies scientific abstracts into 10 research fields (Computer S
 
 - **Embeddings** (Required in `embeddings/` folder):
 
-  - **Word2Vec:** `GoogleNews-vectors-negative300.bin`
+  - **Word2Vec:** `GoogleNews-vectors-negative300.bin.gz`
     - Source: [GoogleNews Word2Vec 300d](https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit?resourcekey=0-wjGZdNAUop6WykTtMip30g)
   - **FastText:** `crawl-300d-2M-subword.bin`
     - Source: [FastText Crawl 300d](https://fasttext.cc/docs/en/english-vectors.html)
@@ -76,7 +76,7 @@ This project classifies scientific abstracts into 10 research fields (Computer S
 
    ```bash
    cd RNN_FFNN_SL
-   python RNN_FNN_main.py
+   python RNN_FFNN_main.py
    ```
 
    - This script trains both RNN (GRU, LSTM) and FFNN models.
@@ -84,7 +84,7 @@ This project classifies scientific abstracts into 10 research fields (Computer S
      - Bag-of-Words (CountVectorizer, TF-IDF)
      - Word Embeddings (GloVe, Word2Vec, FastText)
    - Configure config inside the script:
-     - model_type, rnn_type, embedding_type, pooling
+     - model_type, rnn_type, embedding_type, pooling and finetuning
      - Hyperparameters (batch size, learning rate, epochs)
 
 ## 4. Outputs
@@ -96,4 +96,4 @@ This project classifies scientific abstracts into 10 research fields (Computer S
 
 ## 5. Notes
 
-- We recomend running this on a powerfull computer or VM
+- We recomend running this on a powerful computer or VM
